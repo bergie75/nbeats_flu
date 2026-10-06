@@ -1,10 +1,23 @@
 import numpy as np
+from scipy.stats import dirichlet
 from particles import distributions as dists
-from scipy import stats
 
-# return stats.lognorm.logpdf(x, self.sigma, scale=np.exp(self.mu))
-print(stats.lognorm.logpdf(1e-9, 0.1, scale=np.exp(1e-9)))
-# # if we put x=mu into pdf, the exponential is zero and the only thing left is the prefactor
-# f=1/(np.sqrt(2*np.pi*0.1*0.1)*1e-9)
-# print(np.log(f))
-print(dists.LogNormal(mu=1e-9, sigma=0.1).logpdf(1e-9))
+
+class Dirichlet(dists.ProbDist):
+    def __init__(self, alpha):
+        self.alpha = np.asarray(alpha, dtype=float)
+        self.dim = len(self.alpha)
+        self.dtype = np.dtype((float, (self.dim,)))
+
+    def rvs(self, size=None):
+        return np.random.dirichlet(self.alpha, size=size)
+
+    def logpdf(self, x):
+        try:
+            return dirichlet.logpdf(np.asarray(x).T, self.alpha)
+        except:
+            return -np.inf
+
+if __name__ == "__main__":
+    test = Dirichlet([5,2,1])
+    print(test.logpdf([0.8,0.1,0.1]))
